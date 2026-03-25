@@ -625,33 +625,20 @@
 
         <div class="divider"></div>
 
-        <!-- AXE MARKETING -->
+        <!-- PERSONA & AXE -->
         <div class="form-section">
-          <div class="section-label">Axe marketing <span style="color: var(--text-dim); font-size: 11px;">(plusieurs possible)</span></div>
-          <div class="pill-group" id="axe-group">
-            <div class="pill" data-value="Gain de temps">⚡ Gain de temps</div>
-            <div class="pill" data-value="Économies">💰 Économies</div>
-            <div class="pill" data-value="Performance">🚀 Performance</div>
-            <div class="pill" data-value="Santé & Bien-être">💚 Santé</div>
-            <div class="pill" data-value="Liberté">🌍 Liberté</div>
-            <div class="pill" data-value="Preuve sociale">⭐ Preuve sociale</div>
-            <div class="pill" data-value="Innovation">🔬 Innovation</div>
-            <div class="pill" data-value="Émotion">❤️ Émotion</div>
-            <div class="pill" data-value="Exclusivité">👑 Exclusivité</div>
+          <div class="section-label">Cible & Persona</div>
+          <div class="field-group">
+            <textarea id="axeMarketing" placeholder="Qui visez-vous pour ce script ? Vieux, jeune ? Sportif ? Quel persona visez-vous ? Quelle douleur a ce persona ? Quel axe marketing mettre en avant ?..." style="min-height: 110px;"></textarea>
           </div>
         </div>
 
         <div class="divider"></div>
 
-        <!-- PERSONA & INFOS -->
+        <!-- INFOS SUPPLEMENTAIRES -->
         <div class="form-section">
-          <div class="section-label">Persona & Contexte</div>
+          <div class="section-label">Informations supplémentaires</div>
           <div class="field-group">
-            <label>Persona cible</label>
-            <input type="text" id="persona" placeholder="Ex : Femme 28-40 ans, active, soucieuse de sa santé..." />
-          </div>
-          <div class="field-group">
-            <label>Informations supplémentaires</label>
             <textarea id="infos" placeholder="Prix, offre en cours, code promo, bénéfices clés, objections à contrer, ton de marque, événement, lien..."></textarea>
           </div>
         </div>
@@ -703,7 +690,6 @@
   // --- STATE ---
   let selectedFormat = 'UGC Classique';
   let selectedTonalite = 'Authentique';
-  let selectedAxes = [];
   let rawScriptText = '';
 
   // --- FORMAT TOGGLE ---
@@ -724,19 +710,6 @@
     });
   });
 
-  // --- AXES (multi select) ---
-  document.querySelectorAll('#axe-group .pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const val = pill.dataset.value;
-      if (selectedAxes.includes(val)) {
-        selectedAxes = selectedAxes.filter(a => a !== val);
-        pill.classList.remove('active-axe');
-      } else {
-        selectedAxes.push(val);
-        pill.classList.add('active-axe');
-      }
-    });
-  });
 
   // --- GENERATE ---
   async function generateScript() {
@@ -748,7 +721,7 @@
     }
 
     const produit = document.getElementById('produit').value.trim();
-    const persona = document.getElementById('persona').value.trim();
+    const persona = document.getElementById('axeMarketing').value.trim();
     const infos = document.getElementById('infos').value.trim();
 
     // UI state
@@ -778,7 +751,7 @@
           produit,
           format: selectedFormat,
           tonalite: selectedTonalite,
-          axeMarketing: selectedAxes.join(', ') || 'Non renseigné',
+          axeMarketing: persona || 'Non renseigné',
           persona,
           infoSupplementaire: infos,
         }),
