@@ -552,6 +552,63 @@
     .field-group { margin-bottom: 16px; }
     .field-group:last-child { margin-bottom: 0; }
 
+    /* BANDEAU HISTORIQUE */
+    .history-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(124, 92, 252, 0.08);
+      border: 1px solid rgba(124, 92, 252, 0.25);
+      border-radius: var(--radius-sm);
+      padding: 12px 16px;
+      margin-bottom: 16px;
+    }
+
+    .history-banner.visible { display: flex; }
+
+    .history-banner-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .history-banner-text strong { color: var(--text); }
+
+    .history-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+    .btn-restore {
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.18s;
+    }
+
+    .btn-restore:hover { opacity: 0.85; }
+
+    .btn-discard {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      color: var(--text-dim);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-discard:hover { border-color: var(--border-hover); color: var(--text-muted); }
+
     /* SCROLL */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--surface); }
@@ -654,6 +711,18 @@
     <!-- OUTPUT -->
     <main>
       <div class="output-panel">
+
+        <!-- BANDEAU HISTORIQUE -->
+        <div class="history-banner" id="history-banner">
+          <div class="history-banner-text">
+            <span>💾</span>
+            <span>Tu as un <strong>script non sauvegardé</strong> de ta dernière session — tu veux le récupérer ?</span>
+          </div>
+          <div class="history-actions">
+            <button class="btn-restore" onclick="restoreHistory()">Restaurer</button>
+            <button class="btn-discard" onclick="discardHistory()">Ignorer</button>
+          </div>
+        </div>
         <div class="output-card">
           <div class="output-header">
             <div class="output-title">
@@ -691,6 +760,75 @@
   let selectedFormat = 'UGC Classique';
   let selectedTonalite = 'Authentique';
   let rawScriptText = '';
+
+  // --- HISTORIQUE (localStorage) ---
+  const STORAGE_KEY = 'ugc_last_script';
+
+  function saveHistory(text, brief) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      script: text,
+      brief,
+      savedAt: new Date().toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+    }));
+  }
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
+  }
+
+  function clearHistory() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
+  function restoreHistory() {
+    const saved = loadHistory();
+    if (!saved) return;
+    rawScriptText = saved.script;
+    // Restore form fields
+    if (saved.brief) {
+      if (saved.brief.marque) document.getElementById('marque').value = saved.brief.marque;
+      if (saved.brief.produit) document.getElementById('produit').value = saved.brief.produit;
+      if (saved.brief.persona) document.getElementById('axeMarketing').value = saved.brief.persona;
+      if (saved.brief.infos) document.getElementById('infos').value = saved.brief.infos;
+      if (saved.brief.format) {
+        selectedFormat = saved.brief.format;
+        document.querySelectorAll('.format-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.format === selectedFormat);
+        });
+      }
+      if (saved.brief.tonalite) {
+        selectedTonalite = saved.brief.tonalite;
+        document.querySelectorAll('#tonalite-group .pill').forEach(p => {
+          p.classList.toggle('active', p.dataset.value === selectedTonalite);
+        });
+      }
+    }
+    // Afficher le script
+    document.getElementById('empty-state').style.display = 'none';
+    document.getElementById('history-banner').classList.remove('visible');
+    const outputEl = document.getElementById('script-output');
+    outputEl.classList.add('visible');
+    outputEl.innerHTML = renderMarkdown(rawScriptText);
+    outputEl.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.disabled = false; });
+    document.getElementById('status-dot').className = 'status-dot done';
+    document.getElementById('output-label').textContent = 'Script restauré ✓ (' + saved.savedAt + ')';
+    document.getElementById('reset-btn').style.display = 'flex';
+    document.getElementById('copy-btn').style.display = 'flex';
+    showToast('✓ Script restauré', 'success');
+  }
+
+  function discardHistory() {
+    clearHistory();
+    document.getElementById('history-banner').classList.remove('visible');
+  }
+
+  // Vérifier au chargement s'il y a un script sauvegardé
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = loadHistory();
+    if (saved && saved.script) {
+      document.getElementById('history-banner').classList.add('visible');
+    }
+  });
 
   // --- FORMAT TOGGLE ---
   document.querySelectorAll('.format-btn').forEach(btn => {
@@ -803,12 +941,20 @@
 
   function finalize(outputEl) {
     outputEl.innerHTML = renderMarkdown(rawScriptText);
-    // Make checkboxes work
     outputEl.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.disabled = false; });
     document.getElementById('status-dot').className = 'status-dot done';
     document.getElementById('output-label').textContent = 'Script généré ✓';
     document.getElementById('reset-btn').style.display = 'flex';
     document.getElementById('copy-btn').style.display = 'flex';
+    // Sauvegarde automatique
+    saveHistory(rawScriptText, {
+      marque: document.getElementById('marque').value.trim(),
+      produit: document.getElementById('produit').value.trim(),
+      persona: document.getElementById('axeMarketing').value.trim(),
+      infos: document.getElementById('infos').value.trim(),
+      format: selectedFormat,
+      tonalite: selectedTonalite,
+    });
   }
 
   // --- SIMPLE MARKDOWN RENDERER ---
@@ -871,9 +1017,11 @@
   // --- RESET ---
   function resetOutput() {
     rawScriptText = '';
+    clearHistory();
     document.getElementById('script-output').classList.remove('visible');
     document.getElementById('script-output').innerHTML = '';
     document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('history-banner').classList.remove('visible');
     document.getElementById('status-dot').className = 'status-dot';
     document.getElementById('output-label').textContent = 'En attente de génération';
     document.getElementById('reset-btn').style.display = 'none';
