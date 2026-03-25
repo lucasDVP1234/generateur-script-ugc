@@ -609,6 +609,106 @@
 
     .btn-discard:hover { border-color: var(--border-hover); color: var(--text-muted); }
 
+    /* BOUTON INFO */
+    .label-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .label-row label { margin-bottom: 0; }
+
+    .btn-info {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      color: var(--text-dim);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .btn-info:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(124, 92, 252, 0.1);
+    }
+
+    /* TOOLTIP */
+    .tooltip-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .tooltip-overlay.open { display: flex; }
+
+    .tooltip-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+    }
+
+    .tooltip-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tooltip-body {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .tooltip-body ul {
+      padding-left: 16px;
+      margin-top: 8px;
+    }
+
+    .tooltip-body li { margin-bottom: 6px; }
+    .tooltip-body strong { color: var(--text); }
+
+    .tooltip-close {
+      width: 100%;
+      margin-top: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .tooltip-close:hover { border-color: var(--border-hover); color: var(--text); }
+
     /* SCROLL */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: var(--surface); }
@@ -654,12 +754,31 @@
         <div class="form-section">
           <div class="section-label">La marque</div>
           <div class="field-group">
-            <label>Nom de la marque <span class="required">*</span></label>
+            <div class="label-row">
+              <label>Nom de la marque <span class="required">*</span></label>
+              <span class="btn-info" onclick="openTooltip('marque')">?</span>
+            </div>
             <input type="text" id="marque" placeholder="Ex : Nike, Huel, Swissroc..." />
           </div>
           <div class="field-group">
-            <label>Nom du produit <span style="color: var(--text-dim); font-size: 11px;">(optionnel)</span></label>
+            <div class="label-row">
+              <label>Nom du produit <span style="color: var(--text-dim); font-size: 11px;">(optionnel)</span></label>
+              <span class="btn-info" onclick="openTooltip('produit')">?</span>
+            </div>
             <input type="text" id="produit" placeholder="Ex : Air Max 90, Shake Vanille..." />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- INFOS PRODUIT -->
+        <div class="form-section">
+          <div class="field-group">
+            <div class="label-row">
+              <div class="section-label" style="margin-bottom:0">Infos produit</div>
+              <span class="btn-info" onclick="openTooltip('infos')">?</span>
+            </div>
+            <textarea id="infos" style="margin-top:10px;" placeholder="À quoi sert le produit ? En quoi il est différent des concurrents ? Qui sont les principaux concurrents ? Prix, offre en cours, bénéfices clés..."></textarea>
           </div>
         </div>
 
@@ -667,7 +786,10 @@
 
         <!-- TONALITÉ -->
         <div class="form-section">
-          <div class="section-label">Tonalité</div>
+          <div class="label-row" style="margin-bottom:12px">
+            <div class="section-label" style="margin-bottom:0">Tonalité</div>
+            <span class="btn-info" onclick="openTooltip('tonalite')">?</span>
+          </div>
           <div class="pill-group" id="tonalite-group">
             <div class="pill active" data-value="Authentique">Authentique</div>
             <div class="pill" data-value="Inspirant">Inspirant</div>
@@ -684,19 +806,12 @@
 
         <!-- PERSONA & AXE -->
         <div class="form-section">
-          <div class="section-label">Cible & Persona</div>
           <div class="field-group">
-            <textarea id="axeMarketing" placeholder="Qui visez-vous pour ce script ? Vieux, jeune ? Sportif ? Quel persona visez-vous ? Quelle douleur a ce persona ? Quel axe marketing mettre en avant ?..." style="min-height: 110px;"></textarea>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- INFOS SUPPLEMENTAIRES -->
-        <div class="form-section">
-          <div class="section-label">Informations supplémentaires</div>
-          <div class="field-group">
-            <textarea id="infos" placeholder="Prix, offre en cours, code promo, bénéfices clés, objections à contrer, ton de marque, événement, lien..."></textarea>
+            <div class="label-row">
+              <div class="section-label" style="margin-bottom:0">Cible & Persona</div>
+              <span class="btn-info" onclick="openTooltip('persona')">?</span>
+            </div>
+            <textarea id="axeMarketing" style="margin-top:10px;" placeholder="Qui visez-vous ? Âge, style de vie, situation ? Quelle est leur douleur principale ? Quel axe marketing mettre en avant ?..." style="min-height: 110px;"></textarea>
           </div>
         </div>
 
@@ -755,7 +870,88 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- TOOLTIP MODAL -->
+<div class="tooltip-overlay" id="tooltip-overlay" onclick="closeTooltip(event)">
+  <div class="tooltip-box">
+    <div class="tooltip-title" id="tooltip-title"></div>
+    <div class="tooltip-body" id="tooltip-body"></div>
+    <button class="tooltip-close" onclick="closeTooltip()">Fermer</button>
+  </div>
+</div>
+
 <script>
+  // --- TOOLTIPS ---
+  const TOOLTIPS = {
+    marque: {
+      title: '🏷️ Nom de la marque',
+      body: `Indique le nom exact de la marque pour laquelle tu génères le script.
+      <ul>
+        <li><strong>Sois précis</strong> — le nom sera repris dans les hooks et le CTA.</li>
+        <li>Si la marque a un positionnement fort (luxe, sport, tech), précise-le dans les infos produit.</li>
+        <li><strong>Exemples :</strong> Nike, Huel, Swissroc, Morning, Zara…</li>
+      </ul>`
+    },
+    produit: {
+      title: '📦 Nom du produit',
+      body: `Le nom précis du produit ou service mis en avant dans la vidéo.
+      <ul>
+        <li>Si la marque = le produit (ex : une app), tu peux laisser vide.</li>
+        <li>Sinon, précise le modèle ou la gamme : <strong>"Shake Vanille"</strong>, <strong>"Plan Premium"</strong>, <strong>"Air Max 90"</strong>…</li>
+        <li>Ça permet à l'IA de personnaliser les hooks et le corps du script.</li>
+      </ul>`
+    },
+    infos: {
+      title: '🔍 Infos produit',
+      body: `C'est le champ le plus important pour la qualité du script. Plus tu donnes d'infos, meilleur sera le résultat.
+      <ul>
+        <li><strong>À quoi ça sert ?</strong> — Explique l'utilité principale en 1-2 phrases simples.</li>
+        <li><strong>Différence vs concurrents</strong> — Qu'est-ce qui rend ce produit unique ? Ce que les autres ne font pas.</li>
+        <li><strong>Principaux concurrents</strong> — Dyson, Sephora, Amazon… (pour les comparaisons dans le script).</li>
+        <li><strong>Preuves sociales</strong> — Notes, avis, nombre de clients, certifications.</li>
+        <li><strong>Offre / Prix / Promo</strong> — Code promo, réduction, essai gratuit, lien…</li>
+        <li><strong>Objections courantes</strong> — Ce que les gens pensent avant d'acheter (trop cher, trop compliqué…).</li>
+      </ul>`
+    },
+    tonalite: {
+      title: '🎭 Tonalité',
+      body: `Choisis le registre émotionnel de la vidéo. Cela va influencer le style des hooks et le corps du script.
+      <ul>
+        <li><strong>Authentique</strong> — Naturel, parlé, comme entre amis. Idéal UGC.</li>
+        <li><strong>Inspirant</strong> — Motivant, positif, transformationnel. Idéal coaching/lifestyle.</li>
+        <li><strong>Humoristique</strong> — Décalé, second degré, mémorable. Idéal food/app/gadget.</li>
+        <li><strong>Urgent</strong> — FOMO, places limitées, offre qui expire. Idéal événements/promos.</li>
+        <li><strong>Éducatif</strong> — Pédagogique, "tu ne savais pas que…". Idéal SaaS/santé.</li>
+        <li><strong>Provocateur</strong> — Casse les croyances, choque positivement. Idéal finance/reconversion.</li>
+        <li><strong>Émotionnel</strong> — Touche le cœur, storytelling fort. Idéal cause/bien-être.</li>
+        <li><strong>Énergique</strong> — Dynamique, rapide, punch. Idéal sport/gaming.</li>
+      </ul>`
+    },
+    persona: {
+      title: '🎯 Cible & Persona',
+      body: `Décris précisément à qui s'adresse cette vidéo. C'est ce qui va rendre le script ultra-ciblé.
+      <ul>
+        <li><strong>Âge & profil</strong> — Ex : "Femme 28-40 ans, active, maman débordée".</li>
+        <li><strong>Situation</strong> — Ex : "Salarié qui veut se reconvertir", "Étudiant fauché", "Sportif amateur".</li>
+        <li><strong>Douleur principale</strong> — Le problème N°1 qu'ils ont et que le produit résout.</li>
+        <li><strong>Désir profond</strong> — Ce qu'ils veulent vraiment (liberté, confiance, performance, gain de temps…).</li>
+        <li><strong>Axe marketing</strong> — Sur quoi insister : économies ? résultats rapides ? simplicité ? preuve sociale ?</li>
+      </ul>`
+    }
+  };
+
+  function openTooltip(key) {
+    const tip = TOOLTIPS[key];
+    if (!tip) return;
+    document.getElementById('tooltip-title').innerHTML = tip.title;
+    document.getElementById('tooltip-body').innerHTML = tip.body;
+    document.getElementById('tooltip-overlay').classList.add('open');
+  }
+
+  function closeTooltip(e) {
+    if (e && e.target !== document.getElementById('tooltip-overlay')) return;
+    document.getElementById('tooltip-overlay').classList.remove('open');
+  }
+
   // --- STATE ---
   let selectedFormat = 'UGC Classique';
   let selectedTonalite = 'Authentique';
