@@ -1018,12 +1018,68 @@
     document.getElementById('history-banner').classList.remove('visible');
   }
 
-  // Vérifier au chargement s'il y a un script sauvegardé
+  // --- SAUVEGARDE FORMULAIRE EN TEMPS RÉEL ---
+  const FORM_KEY = 'ugc_form_draft';
+
+  function saveFormDraft() {
+    localStorage.setItem(FORM_KEY, JSON.stringify({
+      marque: document.getElementById('marque').value,
+      produit: document.getElementById('produit').value,
+      infos: document.getElementById('infos').value,
+      persona: document.getElementById('axeMarketing').value,
+      format: selectedFormat,
+      tonalite: selectedTonalite,
+    }));
+  }
+
+  function restoreFormDraft() {
+    try {
+      const draft = JSON.parse(localStorage.getItem(FORM_KEY));
+      if (!draft) return;
+      if (draft.marque) document.getElementById('marque').value = draft.marque;
+      if (draft.produit) document.getElementById('produit').value = draft.produit;
+      if (draft.infos) document.getElementById('infos').value = draft.infos;
+      if (draft.persona) document.getElementById('axeMarketing').value = draft.persona;
+      if (draft.format) {
+        selectedFormat = draft.format;
+        document.querySelectorAll('.format-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.format === selectedFormat);
+        });
+      }
+      if (draft.tonalite) {
+        selectedTonalite = draft.tonalite;
+        document.querySelectorAll('#tonalite-group .pill').forEach(p => {
+          p.classList.toggle('active', p.dataset.value === selectedTonalite);
+        });
+      }
+    } catch {}
+  }
+
+  function clearFormDraft() {
+    localStorage.removeItem(FORM_KEY);
+  }
+
+  // Vérifier au chargement s'il y a un script sauvegardé ET restaurer le formulaire
   window.addEventListener('DOMContentLoaded', () => {
+    // Toujours restaurer le formulaire silencieusement
+    restoreFormDraft();
+
+    // Afficher le bandeau seulement s'il y a un script généré à récupérer
     const saved = loadHistory();
     if (saved && saved.script) {
       document.getElementById('history-banner').classList.add('visible');
     }
+  });
+
+  // Écouter les changements sur tous les champs du formulaire
+  ['marque', 'produit', 'infos', 'axeMarketing'].forEach(id => {
+    document.getElementById(id).addEventListener('input', saveFormDraft);
+  });
+  document.querySelectorAll('.format-btn').forEach(btn => {
+    btn.addEventListener('click', saveFormDraft);
+  });
+  document.querySelectorAll('#tonalite-group .pill').forEach(pill => {
+    pill.addEventListener('click', saveFormDraft);
   });
 
   // --- FORMAT TOGGLE ---
@@ -1214,6 +1270,15 @@
   function resetOutput() {
     rawScriptText = '';
     clearHistory();
+    clearFormDraft();
+    document.getElementById('marque').value = '';
+    document.getElementById('produit').value = '';
+    document.getElementById('infos').value = '';
+    document.getElementById('axeMarketing').value = '';
+    selectedFormat = 'UGC Classique';
+    selectedTonalite = 'Authentique';
+    document.querySelectorAll('.format-btn').forEach(b => b.classList.toggle('active', b.dataset.format === 'UGC Classique'));
+    document.querySelectorAll('#tonalite-group .pill').forEach(p => p.classList.toggle('active', p.dataset.value === 'Authentique'));
     document.getElementById('script-output').classList.remove('visible');
     document.getElementById('script-output').innerHTML = '';
     document.getElementById('empty-state').style.display = 'flex';
