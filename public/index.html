@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Générateur de Scripts UGC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a24;
+      --border: #2a2a3a;
+      --border-hover: #4a4a6a;
+      --accent: #7c5cfc;
+      --accent-glow: rgba(124, 92, 252, 0.3);
+      --accent2: #fc5c7d;
+      --text: #f0f0f8;
+      --text-muted: #8888aa;
+      --text-dim: #555570;
+      --green: #22d3a5;
+      --red: #fc5c7d;
+      --yellow: #fbbf24;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* BACKGROUND GLOW */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(ellipse, rgba(124, 92, 252, 0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* HEADER */
+    header {
+      padding: 40px 0 32px;
+      text-align: center;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(124, 92, 252, 0.1);
+      border: 1px solid rgba(124, 92, 252, 0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .logo-badge span { font-size: 16px; }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 12px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(135deg, #7c5cfc, #fc5c7d);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 400;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* LAYOUT */
+    .layout {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      gap: 24px;
+      padding-bottom: 60px;
+    }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* FORM CARD */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      height: fit-content;
+      position: sticky;
+      top: 24px;
+    }
+
+    .form-section {
+      margin-bottom: 24px;
+    }
+
+    .form-section:last-of-type { margin-bottom: 0; }
+
+    .section-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-dim);
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      resize: none;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    input[type="text"]::placeholder,
+    textarea::placeholder {
+      color: var(--text-dim);
+    }
+
+    textarea { min-height: 80px; line-height: 1.5; }
+
+    /* FORMAT TOGGLE */
+    .format-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .format-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: var(--text-muted);
+    }
+
+    .format-btn .icon { font-size: 20px; display: block; margin-bottom: 4px; }
+    .format-btn .label { font-size: 12px; font-weight: 600; }
+    .format-btn .desc { font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+    .format-btn.active {
+      background: rgba(124, 92, 252, 0.12);
+      border-color: var(--accent);
+      color: var(--text);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    .format-btn:hover:not(.active) { border-color: var(--border-hover); }
+
+    /* PILL TOGGLES */
+    .pill-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 7px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.18s;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .pill:hover { border-color: var(--border-hover); color: var(--text); }
+
+    .pill.active {
+      background: rgba(124, 92, 252, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .pill.active-axe {
+      background: rgba(252, 92, 125, 0.12);
+      border-color: var(--accent2);
+      color: var(--accent2);
+      font-weight: 600;
+    }
+
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 20px 0;
+    }
+
+    /* GENERATE BUTTON */
+    .btn-generate {
+      width: 100%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s, transform 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    .btn-generate:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-generate:active { transform: translateY(0); }
+    .btn-generate:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-generate .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+
+    .btn-generate.loading .spinner { display: block; }
+    .btn-generate.loading .btn-text { display: none; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* OUTPUT PANEL */
+    .output-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .output-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      flex: 1;
+    }
+
+    .output-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+    }
+
+    .output-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-dim);
+    }
+
+    .status-dot.generating {
+      background: var(--yellow);
+      box-shadow: 0 0 8px var(--yellow);
+      animation: pulse 1s infinite;
+    }
+
+    .status-dot.done { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+    .output-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-copy, .btn-reset {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 14px;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.18s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-copy:hover, .btn-reset:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+    }
+
+    .btn-copy.copied { border-color: var(--green); color: var(--green); }
+
+    .output-content {
+      padding: 28px;
+      min-height: 400px;
+    }
+
+    /* EMPTY STATE */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 400px;
+      text-align: center;
+      color: var(--text-dim);
+    }
+
+    .empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted); }
+    .empty-state p { font-size: 13px; line-height: 1.6; max-width: 300px; }
+
+    /* SCRIPT RENDERED */
+    .script-output {
+      display: none;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text);
+    }
+
+    .script-output.visible { display: block; }
+
+    /* MARKDOWN RENDERING */
+    .script-output h1 {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: -0.02em;
+    }
+
+    .script-output h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin: 24px 0 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .script-output h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 18px 0 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .script-output p {
+      margin-bottom: 10px;
+      color: var(--text-muted);
+    }
+
+    .script-output strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .script-output em {
+      color: var(--accent);
+      font-style: italic;
+    }
+
+    .script-output ul, .script-output ol {
+      padding-left: 20px;
+      margin-bottom: 12px;
+    }
+
+    .script-output li {
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .script-output li input[type="checkbox"] { margin-right: 8px; accent-color: var(--green); }
+
+    .script-output blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 10px 16px;
+      background: rgba(124, 92, 252, 0.06);
+      border-radius: 0 8px 8px 0;
+      margin: 12px 0;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    .script-output code {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 13px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      color: var(--accent2);
+    }
+
+    .script-output hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* SECTION HOOK */
+    .hook-block {
+      background: rgba(252, 92, 125, 0.05);
+      border: 1px solid rgba(252, 92, 125, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .corps-block {
+      background: rgba(251, 191, 36, 0.04);
+      border: 1px solid rgba(251, 191, 36, 0.15);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+
+    .cta-block {
+      background: rgba(34, 211, 165, 0.05);
+      border: 1px solid rgba(34, 211, 165, 0.2);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    /* CURSOR BLINK */
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1em;
+      background: var(--accent);
+      margin-left: 2px;
+      vertical-align: text-bottom;
+      animation: blink 1s step-end infinite;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      font-size: 13px;
+      color: var(--text);
+      z-index: 100;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: var(--green); color: var(--green); }
+    .toast.error { border-color: var(--red); color: var(--red); }
+
+    /* REQUIRED STAR */
+    .required { color: var(--accent2); }
+
+    /* FIELD GROUP */
+    .field-group { margin-bottom: 16px; }
+    .field-group:last-child { margin-bottom: 0; }
+
+    /* SCROLL */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-badge"><span>✦</span> Académie UGC</div>
+    <h1>Générateur de Scripts<br><span class="gradient">UGC & Micro-Trottoir</span></h1>
+    <p class="subtitle">Remplis le brief, l'IA génère un script prêt à tourner selon la méthode de l'agence.</p>
+  </header>
+
+  <div class="layout">
+
+    <!-- FORMULAIRE -->
+    <aside>
+      <div class="form-card">
+
+        <!-- FORMAT -->
+        <div class="form-section">
+          <div class="section-label">Format vidéo <span class="required">*</span></div>
+          <div class="format-toggle">
+            <div class="format-btn active" data-format="UGC Classique">
+              <span class="icon">🎬</span>
+              <div class="label">UGC Classique</div>
+              <div class="desc">Créateur face caméra</div>
+            </div>
+            <div class="format-btn" data-format="Micro-Trottoir">
+              <span class="icon">🎤</span>
+              <div class="label">Micro-Trottoir</div>
+              <div class="desc">Street interview</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- MARQUE & PRODUIT -->
+        <div class="form-section">
+          <div class="section-label">La marque</div>
+          <div class="field-group">
+            <label>Nom de la marque <span class="required">*</span></label>
+            <input type="text" id="marque" placeholder="Ex : Nike, Huel, Swissroc..." />
+          </div>
+          <div class="field-group">
+            <label>Nom du produit <span style="color: var(--text-dim); font-size: 11px;">(optionnel)</span></label>
+            <input type="text" id="produit" placeholder="Ex : Air Max 90, Shake Vanille..." />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- TONALITÉ -->
+        <div class="form-section">
+          <div class="section-label">Tonalité</div>
+          <div class="pill-group" id="tonalite-group">
+            <div class="pill active" data-value="Authentique">Authentique</div>
+            <div class="pill" data-value="Inspirant">Inspirant</div>
+            <div class="pill" data-value="Humoristique">Humoristique</div>
+            <div class="pill" data-value="Urgent">Urgent</div>
+            <div class="pill" data-value="Éducatif">Éducatif</div>
+            <div class="pill" data-value="Provocateur">Provocateur</div>
+            <div class="pill" data-value="Émotionnel">Émotionnel</div>
+            <div class="pill" data-value="Énergique">Énergique</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- AXE MARKETING -->
+        <div class="form-section">
+          <div class="section-label">Axe marketing <span style="color: var(--text-dim); font-size: 11px;">(plusieurs possible)</span></div>
+          <div class="pill-group" id="axe-group">
+            <div class="pill" data-value="Gain de temps">⚡ Gain de temps</div>
+            <div class="pill" data-value="Économies">💰 Économies</div>
+            <div class="pill" data-value="Performance">🚀 Performance</div>
+            <div class="pill" data-value="Santé & Bien-être">💚 Santé</div>
+            <div class="pill" data-value="Liberté">🌍 Liberté</div>
+            <div class="pill" data-value="Preuve sociale">⭐ Preuve sociale</div>
+            <div class="pill" data-value="Innovation">🔬 Innovation</div>
+            <div class="pill" data-value="Émotion">❤️ Émotion</div>
+            <div class="pill" data-value="Exclusivité">👑 Exclusivité</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- PERSONA & INFOS -->
+        <div class="form-section">
+          <div class="section-label">Persona & Contexte</div>
+          <div class="field-group">
+            <label>Persona cible</label>
+            <input type="text" id="persona" placeholder="Ex : Femme 28-40 ans, active, soucieuse de sa santé..." />
+          </div>
+          <div class="field-group">
+            <label>Informations supplémentaires</label>
+            <textarea id="infos" placeholder="Prix, offre en cours, code promo, bénéfices clés, objections à contrer, ton de marque, événement, lien..."></textarea>
+          </div>
+        </div>
+
+        <button class="btn-generate" id="generate-btn" onclick="generateScript()">
+          <span class="btn-text">✦ Générer le script</span>
+          <div class="spinner"></div>
+        </button>
+
+      </div>
+    </aside>
+
+    <!-- OUTPUT -->
+    <main>
+      <div class="output-panel">
+        <div class="output-card">
+          <div class="output-header">
+            <div class="output-title">
+              <div class="status-dot" id="status-dot"></div>
+              <span id="output-label">En attente de génération</span>
+            </div>
+            <div class="output-actions">
+              <button class="btn-reset" id="reset-btn" onclick="resetOutput()" style="display:none">
+                🔄 Nouveau
+              </button>
+              <button class="btn-copy" id="copy-btn" onclick="copyScript()" style="display:none">
+                📋 Copier
+              </button>
+            </div>
+          </div>
+          <div class="output-content">
+            <div class="empty-state" id="empty-state">
+              <div class="icon">✦</div>
+              <h3>Ton script apparaîtra ici</h3>
+              <p>Remplis le brief à gauche et clique sur "Générer le script" pour obtenir un script prêt à tourner.</p>
+            </div>
+            <div class="script-output" id="script-output"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // --- STATE ---
+  let selectedFormat = 'UGC Classique';
+  let selectedTonalite = 'Authentique';
+  let selectedAxes = [];
+  let rawScriptText = '';
+
+  // --- FORMAT TOGGLE ---
+  document.querySelectorAll('.format-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedFormat = btn.dataset.format;
+    });
+  });
+
+  // --- TONALITÉ (single select) ---
+  document.querySelectorAll('#tonalite-group .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('#tonalite-group .pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedTonalite = pill.dataset.value;
+    });
+  });
+
+  // --- AXES (multi select) ---
+  document.querySelectorAll('#axe-group .pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      const val = pill.dataset.value;
+      if (selectedAxes.includes(val)) {
+        selectedAxes = selectedAxes.filter(a => a !== val);
+        pill.classList.remove('active-axe');
+      } else {
+        selectedAxes.push(val);
+        pill.classList.add('active-axe');
+      }
+    });
+  });
+
+  // --- GENERATE ---
+  async function generateScript() {
+    const marque = document.getElementById('marque').value.trim();
+    if (!marque) {
+      showToast('⚠️ Renseigne le nom de la marque', 'error');
+      document.getElementById('marque').focus();
+      return;
+    }
+
+    const produit = document.getElementById('produit').value.trim();
+    const persona = document.getElementById('persona').value.trim();
+    const infos = document.getElementById('infos').value.trim();
+
+    // UI state
+    const btn = document.getElementById('generate-btn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    document.getElementById('empty-state').style.display = 'none';
+    const outputEl = document.getElementById('script-output');
+    outputEl.classList.add('visible');
+    outputEl.innerHTML = '<span class="cursor"></span>';
+
+    document.getElementById('status-dot').className = 'status-dot generating';
+    document.getElementById('output-label').textContent = 'Génération en cours...';
+    document.getElementById('reset-btn').style.display = 'none';
+    document.getElementById('copy-btn').style.display = 'none';
+
+    rawScriptText = '';
+    let buffer = '';
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          marque,
+          produit,
+          format: selectedFormat,
+          tonalite: selectedTonalite,
+          axeMarketing: selectedAxes.join(', ') || 'Non renseigné',
+          persona,
+          infoSupplementaire: infos,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Erreur serveur');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') {
+            finalize(outputEl);
+            return;
+          }
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.error) throw new Error(parsed.error);
+            if (parsed.text) {
+              rawScriptText += parsed.text;
+              outputEl.innerHTML = renderMarkdown(rawScriptText) + '<span class="cursor"></span>';
+              outputEl.parentElement.scrollTop = outputEl.parentElement.scrollHeight;
+            }
+          } catch (e) { /* skip */ }
+        }
+      }
+      finalize(outputEl);
+    } catch (err) {
+      console.error(err);
+      showToast('❌ Erreur lors de la génération. Vérifie ta clé API.', 'error');
+      outputEl.innerHTML = '<p style="color: var(--red);">Une erreur est survenue. Vérifie ta clé API dans le fichier .env</p>';
+      document.getElementById('status-dot').className = 'status-dot';
+      document.getElementById('output-label').textContent = 'Erreur';
+    } finally {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+    }
+  }
+
+  function finalize(outputEl) {
+    outputEl.innerHTML = renderMarkdown(rawScriptText);
+    // Make checkboxes work
+    outputEl.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.disabled = false; });
+    document.getElementById('status-dot').className = 'status-dot done';
+    document.getElementById('output-label').textContent = 'Script généré ✓';
+    document.getElementById('reset-btn').style.display = 'flex';
+    document.getElementById('copy-btn').style.display = 'flex';
+  }
+
+  // --- SIMPLE MARKDOWN RENDERER ---
+  function renderMarkdown(text) {
+    let html = text
+      // Escape HTML
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      // HR
+      .replace(/^---$/gm, '<hr/>')
+      // H1
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      // H2
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      // H3
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      // Bold
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // Italic
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      // Code
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      // Checkbox list
+      .replace(/^- \[ \] (.+)$/gm, '<li><input type="checkbox" disabled/> $1</li>')
+      .replace(/^- \[x\] (.+)$/gm, '<li><input type="checkbox" checked disabled/> $1</li>')
+      // Unordered list
+      .replace(/^- (.+)$/gm, '<li>$1</li>')
+      .replace(/^• (.+)$/gm, '<li>$1</li>')
+      // Blockquote
+      .replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+      // Line breaks to paragraphs
+      .split('\n\n')
+      .map(block => {
+        if (block.match(/^<(h[1-3]|hr|blockquote|ul|ol|li)/)) return block;
+        if (block.includes('<li>')) return '<ul>' + block + '</ul>';
+        if (block.trim() === '') return '';
+        return '<p>' + block.replace(/\n/g, '<br/>') + '</p>';
+      })
+      .join('\n');
+
+    return html;
+  }
+
+  // --- COPY ---
+  async function copyScript() {
+    try {
+      await navigator.clipboard.writeText(rawScriptText);
+      const btn = document.getElementById('copy-btn');
+      btn.classList.add('copied');
+      btn.textContent = '✓ Copié !';
+      showToast('✓ Script copié dans le presse-papier', 'success');
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = '📋 Copier';
+      }, 2000);
+    } catch {
+      showToast('⚠️ Impossible de copier', 'error');
+    }
+  }
+
+  // --- RESET ---
+  function resetOutput() {
+    rawScriptText = '';
+    document.getElementById('script-output').classList.remove('visible');
+    document.getElementById('script-output').innerHTML = '';
+    document.getElementById('empty-state').style.display = 'flex';
+    document.getElementById('status-dot').className = 'status-dot';
+    document.getElementById('output-label').textContent = 'En attente de génération';
+    document.getElementById('reset-btn').style.display = 'none';
+    document.getElementById('copy-btn').style.display = 'none';
+  }
+
+  // --- TOAST ---
+  function showToast(msg, type = '') {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast show ' + type;
+    setTimeout(() => { toast.className = 'toast'; }, 3000);
+  }
+
+  // Enter key on inputs
+  document.querySelectorAll('input[type="text"]').forEach(input => {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') generateScript();
+    });
+  });
+</script>
+
+</body>
+</html>
